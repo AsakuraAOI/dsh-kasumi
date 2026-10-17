@@ -1,0 +1,11 @@
+{
+  "package": "@yunmiao/studymate",
+  "version": "2.0.1",
+  "license": "MIT",
+  "source": "https://github.com/Miaotofu01/Study-Mate",
+  "files": {
+    "preset/learning/agent.cordis.yml": "768a4d7084499586f11e445eae7e4cba374bb01e0f7547f3b5f768e07077a6ff",
+    "preset/learning/preset.yml": "65fad538289128fc512437f12907a2979518864864f3e383771d71c8c6f4aea2",
+    "lib/tools/learning-preset.ts": "aafdbe4ad9396143dab7fdb9d03e70453f1054dcf9e684bf2d909527dc5e645c"
+  }
+}

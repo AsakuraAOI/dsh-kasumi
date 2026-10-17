@@ -1,0 +1,16 @@
+{
+  "name": "@local/dsh-kasumi-budget-profile",
+  "version": "0.6.0",
+  "private": true,
+  "type": "module",
+  "description": "独立 Query 字节保护通道：精确预检、提前压缩及原生摘要恢复。",
+  "exports": {
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

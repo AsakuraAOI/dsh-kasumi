@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "纯文本会话压缩",
+    "description": "使用原生 Checkpoint 与 Replay，无工具摘要，限制重复失败。"
+  }
+}

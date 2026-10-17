@@ -1,0 +1,17 @@
+{
+  "name": "@local/dsh-kasumi-dev-profile",
+  "version": "0.3.1",
+  "private": true,
+  "type": "module",
+  "description": "Kasumi 隔离开发环境：会话和输出独立保存，默认使用基础均衡版。",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

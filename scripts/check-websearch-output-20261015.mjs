@@ -1,0 +1,18 @@
+import fs from'node:fs';
+import assert from'node:assert/strict';
+import{applyWebSearchTool,formatSearchOutput,searchMetaFromValue}from'@deepseek-ai/dsh-tool-web';
+import{GatewaySearchProvider as After}from'../../dsh-kasumi-websearch/src/provider.js';
+import{GatewaySearchProvider as Before}from'file:///C:/Users/Hyper/Desktop/github/hiagent-coding-provider/.scratch/websearch-20261015/provider-before.mjs';
+const response={sources:[{url:'https://example.org/1234567890123456789',title:'Aria settings',snippet:'Settings summary',engines:['bing']}],truncated:false};
+const options={baseURL:'https://mock.example',resolveKey:async()=>'test',fetcher:async()=>Response.json(response)};
+let definition;
+const provider=new After(options);
+applyWebSearchTool({web:{search:(r,s)=>provider.search(r,s)},systemPrompt:{section(){},getSectionOrder(){return 0;}},tools:{register(d){definition=d;}}},8,4,20000,true);
+const args={queries:['Aria','Aria settings','Aria profile']};
+const value=await definition.execute(args,{signal:new AbortController().signal});
+const text=formatSearchOutput(value),meta=searchMetaFromValue(value);
+assert.equal(value.content,undefined);assert.equal(meta.answer,undefined);assert.equal(value.sources.length,1);assert.ok(text.includes(response.sources[0].url));assert.doesNotMatch(text,/以下来源已标明|摘要里的日期|### Aria/);
+const beforeText=formatSearchOutput(await new Before(options).search({query:'Aria'}));
+const afterText=formatSearchOutput(await provider.search({query:'Aria'}));
+const result={success:true,scope:'Offline replay through unchanged native DSH multi-query execution and formatter',queries:args.queries,mergedSources:value.sources.length,answerFieldAbsent:true,sourceUrlPreserved:true,beforeToolBytes:Buffer.byteLength(beforeText),afterToolBytes:Buffer.byteLength(afterText),text};
+fs.writeFileSync(new URL('../reports/websearch-output-20261015.json',import.meta.url),JSON.stringify(result,null,2));console.log(JSON.stringify({...result,text:undefined}));

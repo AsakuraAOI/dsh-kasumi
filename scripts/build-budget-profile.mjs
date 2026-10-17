@@ -1,0 +1,14 @@
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import yaml from 'js-yaml';
+import {root} from './runtime.mjs';
+import {schema} from './build-presets.mjs';
+import {compaction} from '../config/shared.mjs';
+const target=root+'/profiles/budget';await mkdir(target,{recursive:true});const version=JSON.parse(await readFile(root+'/package.json','utf8')).version;
+await writeFile(target+'/package.json',JSON.stringify({name:'@local/dsh-kasumi-budget-profile',version,private:true,type:'module',description:'独立 Query 字节保护通道：精确预检、提前压缩及原生摘要恢复。',exports:{'./package.json':'./package.json','./locale/*.json':'./locale/*.json'},dsh:{bundle:{patch:'./cordis.patch.yml'}}},null,2));await mkdir(target+'/locale',{recursive:true});for(const language of ['en','zh'])await writeFile(target+`/locale/${language}.json`,JSON.stringify({meta:{title:'Kasumi Query 预算保护环境',description:'隔离测试与可选保护通道，不覆盖桌面原 Provider。'}},null,2));
+const declarations=yaml.load(await readFile(root+'/cordis.patch.yml','utf8'),{schema})[0].insert.filter(row=>row.name==='@deepseek-ai/dsh-agent-preset').map(row=>{const copy=structuredClone(row);Object.assign(copy.config.plugins.find(x=>x.id==='compaction').config.find(x=>x.id==='compaction-basic').config,{summarizationProvider:'hiagent-summary',summarizationModel:'deepseek-v4.1-flash'});return copy;});
+const model={id:'deepseek-v4.1-flash',name:'DeepSeek Flash（Query 预算保护）',input:['text'],contextWindow:224000};
+const provider=path=>({apiKeyEnv:'HIAGENT_API_KEY',api:'anthropic-messages',baseURL:{__jsExpr:`ctx.hiagentQueryBudget.url + '${path}'`},defaultMaxTokens:8192,timeoutMs:330000,streamIdleTimeoutMs:330000,models:[model],retryPolicy:{mode:'normal',maxRetries:1,retryableCodes:['RATE_LIMIT']}});
+const rows=[{id:'hiagent-query-budget',disabled:false,config:{enabled:true,verificationPath:{__jsExpr:'process.env.DSH_HIAGENT_VERIFICATION'},upstream:'https://api.asakuraaoi.cn/anthropic',admissionBytes:810000,path:{__jsExpr:"ctx.profileContext.dir + '/query-budget.jsonl'"}}},{id:'llm-pi-ai',inject:['hiagentQueryBudget'],config:{providers:{hiagent:provider('/agent'),'hiagent-summary':provider('/summary')}}},{id:'agent-preset-registry',config:{default:'hiagent-balanced-optimized'}},{id:'hiagent-observability',config:{enabled:true,providers:['hiagent','hiagent-summary'],path:{__jsExpr:"ctx.profileContext.dir + '/metrics.jsonl'"}}},...declarations];
+rows.push({id:'hiagent-global-compaction',config:{...compaction,auto:false,summarizationProvider:'hiagent-summary',summarizationModel:'deepseek-v4.1-flash'}});
+await writeFile(target+'/cordis.patch.yml',yaml.dump(rows,{schema,lineWidth:110,noRefs:true}));console.log('生成可选的独立 Query 预算保护 Profile Bundle。');

@@ -1,0 +1,99 @@
+{
+  "name": "@local/dsh-kasumi",
+  "version": "0.6.2",
+  "private": true,
+  "type": "module",
+  "description": "可开关的 Kasumi 全局适配与兼容预设：自动纯文本压缩、输出预算、读取批次和恢复守卫。",
+  "exports": {
+    ".": "./src/observability.js",
+    "./compaction": "./src/compaction.js",
+    "./output-budget": "./src/output-budget.js",
+    "./recovery": "./src/recovery.js",
+    "./query-budget": "./src/query-budget.js",
+    "./dev-preset": "./src/dev-preset.js",
+    "./learning-policy": "./src/learning-policy.js",
+    "./learning-policy/locale/*.json": "./locale/learning-policy/*.json",
+    "./learning-policy/package.json": "./package.json",
+    "./global": "./src/global.js",
+    "./global/locale/*.json": "./locale/global/*.json",
+    "./global/package.json": "./package.json",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./compaction/locale/*.json": "./locale/compaction/*.json",
+    "./compaction/package.json": "./package.json",
+    "./output-budget/locale/*.json": "./locale/output-budget/*.json",
+    "./output-budget/package.json": "./package.json",
+    "./recovery/locale/*.json": "./locale/recovery/*.json",
+    "./recovery/package.json": "./package.json",
+    "./query-budget/locale/*.json": "./locale/query-budget/*.json",
+    "./query-budget/package.json": "./package.json",
+    "./dev-preset/locale/*.json": "./locale/dev-preset/*.json",
+    "./dev-preset/package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "files": [
+    "src",
+    "config",
+    "cordis.patch.yml",
+    "baseline",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSES",
+    "docs",
+    "scripts",
+    "tests",
+    "benchmarks",
+    "reports",
+    "profiles",
+    "locale"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm-pi-ai": "0.2.1-rc.2",
+    "js-yaml": "4.2.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "3.18.5",
+    "@deepseek-ai/dsh-compaction-basic": "0.2.1-rc.1 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.1 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.1 || 0.2.1-rc.2",
+    "@yunmiao/studymate": "^2.0.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-compaction-basic": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@yunmiao/studymate": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "build": "node scripts/build-presets.mjs",
+    "benchmark": "node scripts/benchmark.mjs",
+    "report": "node scripts/report.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AsakuraAOI/dsh-kasumi.git"
+  },
+  "homepage": "https://github.com/AsakuraAOI/dsh-kasumi#readme",
+  "bugs": {
+    "url": "https://github.com/AsakuraAOI/dsh-kasumi/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness"
+  ]
+}

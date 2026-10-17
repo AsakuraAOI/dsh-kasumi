@@ -1,0 +1,98 @@
+# Isolated headless developer composition; never install into desktop.
+- id: tool-plugin-manager
+  disabled: true
+- id: tool-bash
+  disabled: true
+- id: tool-pwsh
+  disabled: true
+- id: tool-jobs
+  disabled: true
+- id: tool-fs
+  disabled: true
+- id: tool-fs-search
+  disabled: true
+- id: skill-filesystem
+  disabled: true
+- id: tool-skill
+  disabled: true
+- id: command-goal
+  disabled: true
+- id: tool-goal
+  disabled: true
+- id: plan-mode
+  disabled: true
+- id: compaction-basic
+  disabled: true
+- id: command-compact
+  disabled: true
+- id: tool-result-pruner
+  disabled: true
+- id: tool-subagent-control
+  disabled: true
+- id: tool-subagent-list-agents
+  disabled: true
+- id: tool-subagent
+  disabled: true
+- id: tool-subagent-fork
+  disabled: true
+- id: workflow-ptc
+  disabled: true
+- id: tool-workflow
+  disabled: true
+- id: tool-ralph
+  disabled: true
+- id: agent-instructions
+  disabled: true
+- id: tool-todo
+  disabled: true
+- id: tool-web
+  disabled: true
+- insert:
+    - id: agent-preset-registry
+      name: '@deepseek-ai/dsh-agent-preset-registry'
+      config:
+        default: !!js process.env.DSH_HIAGENT_PRESET || 'hiagent-balanced'
+- id: llm-pi-ai
+  config:
+    providers:
+      hiagent:
+        apiKeyEnv: HIAGENT_API_KEY
+        api: anthropic-messages
+        baseURL: https://api.asakuraaoi.cn/anthropic
+        defaultMaxTokens: 8192
+        timeoutMs: 330000
+        streamIdleTimeoutMs: 330000
+        models:
+          - id: deepseek-v4.1-flash
+            name: deepseek-v4.1-flash
+            input:
+              - text
+              - image
+            contextWindow: 160000
+        retryPolicy:
+          mode: normal
+          maxRetries: 1
+          retryableCodes:
+            - RATE_LIMIT
+          backoff:
+            initialDelayMs: 1000
+            maxDelayMs: 10000
+            jitterRatio: 0.1
+- id: agent-default-model
+  config:
+    provider: hiagent
+    model: deepseek-v4.1-flash
+- id: session-title-llm
+  disabled: true
+- id: hiagent-recovery
+  disabled: false
+- id: session-persistence-jsonl
+  config:
+    root: !!js ctx.profileContext.dir + '/sessions'
+- id: spill-local
+  config:
+    root: !!js ctx.profileContext.dir + '/spill'
+    cleanupPeriodDays: 7
+- insert:
+    - id: hiagent-dev-preset-mount
+      name: '@local/dsh-kasumi-dev-profile'

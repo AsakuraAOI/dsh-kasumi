@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Query 字节预算预检",
+    "description": "复用已核验的 Provider 编译代码，在远端生成前拦截超预算请求。"
+  }
+}

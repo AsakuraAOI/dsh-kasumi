@@ -1,0 +1,54 @@
+# Your patch layer for this dsh profile, applied after every bundle layer:
+# a top-level YAML array of loader patch entries (id-targeted config
+# overrides, disables, and insert lists; `!!js` expressions allowed).
+- id: agent-default-model
+  name: "@deepseek-ai/dsh-agent-default-model"
+  config:
+    provider: hiagent
+    model: deepseek-v4.1-flash
+- id: ui-settings-account
+  name: "@deepseek-ai/dsh-client-ui-settings-account"
+  config:
+    version: 1
+    step: done
+    purpose: both
+    process: detailed
+    completion: completed
+    usage: detailed
+    developerTools: true
+- id: ui-chat
+  name: "@deepseek-ai/dsh-client-ui-chat"
+  config:
+    transcriptView: detailed
+    performanceUsage: detailed
+- id: ui-settings
+  name: "@deepseek-ai/dsh-client-ui-settings"
+  config:
+    enabled: true
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      hiagent:
+        apiKeyEnv: HIAGENT_API_KEY
+        api: anthropic-messages
+        baseURL: https://api.asakuraaoi.cn/anthropic
+        models:
+          - id: deepseek-v4-pro
+            name: deepseek-v4-pro
+            contextWindow: 224000
+          - id: deepseek-v4.1-flash
+            name: deepseek-v4.1-flash
+            input:
+              - text
+              - image
+            contextWindow: 224000
+          - id: mimov2.6pro
+            name: mimov2.6pro
+            contextWindow: 224000
+          - id: mimov2.6pro-mcp
+            name: mimov2.6pro-mcp
+            input:
+              - text
+              - image
+            contextWindow: 224000

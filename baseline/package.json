@@ -1,0 +1,12 @@
+{
+  "name": "@local/dsh-kasumi-presets",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kasumi Lite and Kasumi Balanced agent presets for the DeepSeek Harness desktop profile.",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

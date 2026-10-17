@@ -1,0 +1,30 @@
+import {startProfile,devComposition,root} from './runtime.mjs';
+import {providerConfig} from '../config/provider.mjs';
+import {startBudgetGateway} from '../src/query-budget.js';
+import {loadOverlayPatches} from '@deepseek-ai/dsh-app-boot';
+import {createUserMessage} from '@deepseek-ai/dsh-llm';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import assert from 'node:assert/strict';
+const dir=root+'/benchmark-runs/budget-live-03';await mkdir(dir,{recursive:true});
+const gate=await startBudgetGateway({verificationPath:root+'/reports/provider-verification.json',upstream:'https://api.asakuraaoi.cn/anthropic',admissionBytes:60000,path:dir+'/query.jsonl',port:0});
+const configuration=providerConfig(224000,true);configuration.providers.hiagent.baseURL=gate.url+'/agent';configuration.providers['hiagent-summary']={...configuration.providers.hiagent,baseURL:gate.url+'/summary'};
+const {ctx}=await startProfile('hiagent-dev',[...devComposition(),{id:'llm-pi-ai',config:configuration},{id:'hiagent-observability',config:{enabled:true,path:dir+'/metrics.jsonl',providers:['hiagent','hiagent-summary']}},{id:'session-persistence-jsonl',config:{root:dir+'/sessions'}}]);
+let handle;
+try {
+ const definition=structuredClone(loadOverlayPatches('budget-live',root+'/cordis.patch.yml')[0].insert.find(x=>x.config?.id==='hiagent-lite-optimized').config);definition.id='budget-live';
+ const policy=definition.plugins.find(x=>x.id==='compaction').config.find(x=>x.id==='compaction-basic').config;
+ delete policy.retainRatio;Object.assign(policy,{retainTokens:0,thresholdRatio:0.99,headroomTokens:0,summarizationProvider:'hiagent-summary',summarizationModel:'deepseek-v4.1-flash'});
+ await ctx.agentPresets.register(definition);
+ handle=await ctx.agents.create({sessionId:'budget-live-'+Date.now(),meta:{cwd:dir},agentOptions:{provider:'hiagent',model:'deepseek-v4.1-flash'},setup:async c=>{await ctx.agentPresets.mount(c,definition.id)}});
+ const agent=handle.agent;
+ const seed=ctx.on('llm/stream',(options,next)=>options.sessionId===agent.session.id?(async function*(){yield{type:'block-start',index:0,blockType:'text'};yield{type:'block-end',index:0,block:{type:'text',text:'Recorded phase: src/demo.js edited; node --test completed. Pending: report marker KEEP-B9.'}};yield{type:'finish',reason:{kind:'stop'}};})():next(),{global:true,prepend:true});
+ agent.followup(createUserMessage({source:{kind:'user'},content:[{type:'text',text:'Remember: src/demo.js edited; node --test completed; pending report KEEP-B9.\n'+'historical project inspection details. '.repeat(3500)+'\nRemember pending marker KEEP-B9.'}]}));await agent.whenIdle();seed();
+ agent.followup(createUserMessage({source:{kind:'user'},content:[{type:'text',text:'Without using tools, report the remembered marker, edited file and completed verification command.'}]}));await agent.whenIdle();
+ const events=Array.from({length:agent.session.seq},(_,i)=>agent.session.eventAt(i));const final=events.filter(x=>x.type==='assistant/message').at(-1).data.message.content.filter(x=>x.type==='text').map(x=>x.text).join('\n');assert.match(final,/KEEP-B9/);assert.match(final,/src[\\/]demo\.js/);assert.match(final,/node --test/);assert.equal(events.filter(x=>x.type==='turn/end').at(-1).data.reason.kind,'completed');
+ await ctx.sessions.flush(agent.session);
+ await handle.dispose();handle=undefined;await ctx.fiber.dispose();await gate.close();
+ const queries=(await readFile(dir+'/query.jsonl','utf8')).trim().split('\n').map(JSON.parse),preflights=queries.filter(x=>x.type==='query/preflight');
+ assert.ok(preflights.some(x=>!x.forwarded&&x.compiledQueryBytes>60000));assert.ok(preflights.some(x=>x.lane==='summary'&&x.toolCount===0&&x.forwarded));assert.ok(preflights.some(x=>x.lane==='agent'&&x.forwarded&&x.compiledQueryBytes<60000));
+ const result={success:true,syntheticSeed:true,actualModelSummaryAndContinuation:true,preflightThreshold:60000,hardLimit:900000,final,preflights};await writeFile(root+'/reports/budget-live.json',JSON.stringify(result,null,2));console.log(JSON.stringify({success:true,queries:preflights.map(x=>({lane:x.lane,bytes:x.compiledQueryBytes,forwarded:x.forwarded,tools:x.toolCount}))}));
+}catch(error){await handle?.dispose();await ctx.fiber.dispose();await gate.close();throw error;}

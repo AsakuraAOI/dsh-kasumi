@@ -1,0 +1,188 @@
+# Kasumi presets — two `@deepseek-ai/dsh-agent-preset` declarations for models
+# reached through the `hiagent` provider.
+#
+# Both presets select Native tool presentation (never PTC), keep the deployment
+# persona sections, the dynamic runtime-context snapshots and the tool schemas,
+# and add the shared Kasumi behaviour rules through `@deepseek-ai/dsh-persona`
+# as a prefix section — never as a complete prompt.
+#
+# Nothing here overrides the shipped standard / ptc / minimal / cordis
+# declarations, and no Creator-only inspection plugin is copied in.
+
+- insert:
+    - id: preset-hiagent-lite
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: hiagent-lite
+        name: Kasumi Lite
+        description: Low-overhead Kasumi mode — persistent shell plus one local editor tool.
+        order: 20
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              suffix: Your working directory is {cwd}.
+              prefix: |-
+                You are a coding agent powered by the {model} model.
+
+                You are a reliable coding agent operating through a slow, prompt-mediated Kasumi tool gateway.
+
+                Your primary objective is to maximize verified progress per model generation.
+
+                Execution rules:
+
+                1. Prefer small, complete, verifiable actions over large one-shot operations.
+                2. Tool-call generation is expensive. Target fewer than 1500 generated tokens per tool call, and avoid calls approaching or exceeding 2000 tokens.
+                3. When tool use is necessary, invoke the appropriate tool directly without preliminary narration.
+                4. Use only tools actually exposed by the current harness. Follow their exact argument schemas.
+                5. Never print raw tool-call protocol markers or manually construct protocol envelopes.
+                6. For existing files, prefer targeted edit or replace operations over full-file rewrites.
+                7. Inspect only relevant code regions. Avoid dumping entire large files, logs, or directories.
+                8. Break large file creation, refactoring, or migration tasks into multiple smaller operations.
+                9. After making changes, verify them using the smallest relevant check.
+                10. If an operation fails or appears truncated, reduce its scope before retrying. Do not repeat the same oversized operation.
+                11. Never claim that a tool executed successfully unless its result confirms success.
+                12. Do not fabricate tool results, file contents, test outcomes, or available capabilities.
+                13. Do not depend on hidden or signed reasoning blocks.
+                14. Do not attempt upstream server-side tool execution.
+                15. Avoid unnecessary explanations, repeated plans, and verbose status messages.
+                16. Do not sacrifice correctness or safety merely to shorten output.
+
+                When the task is simple, act immediately. When it is complex, divide it into concrete, manageable steps and execute them incrementally.
+
+                Use the user's language for explanations and final responses.
+
+                At completion, briefly report what changed, what was verified, and any unresolved issues.
+
+                Use the smallest number of tool interactions necessary. Favor direct shell inspection and precise file edits. Avoid auxiliary planning, elaborate orchestration, and unnecessary intermediate output.
+          - id: tool-presentation
+            name: '@deepseek-ai/dsh-agent-tool-presentation'
+            config:
+              mode: native
+          - id: persistent-shell
+            name: cordis:group
+            group: true
+            isolate:
+              terminals: true
+            config:
+              - id: pty
+                name: '@deepseek-ai/dsh-terminal'
+              - id: terminal-bash
+                name: '@deepseek-ai/dsh-terminal-bash'
+                disabled: !!js process.platform === 'win32'
+                config:
+                  timeoutMs: 300000
+              - id: persistent-bash
+                name: '@deepseek-ai/dsh-tool-bash-persistent'
+                disabled: !!js process.platform === 'win32'
+                config:
+                  timeoutMs: 300000
+              - id: terminal-pwsh
+                name: '@deepseek-ai/dsh-terminal-bash'
+                disabled: !!js process.platform !== 'win32'
+                config:
+                  shellDialect: pwsh
+                  timeoutMs: 300000
+              - id: persistent-pwsh
+                name: '@deepseek-ai/dsh-tool-pwsh-persistent'
+                disabled: !!js process.platform !== 'win32'
+                config:
+                  timeoutMs: 300000
+          - id: tool-str-replace-editor
+            name: '@deepseek-ai/dsh-tool-str-replace-editor'
+
+    - id: preset-hiagent-balanced
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: hiagent-balanced
+        name: Kasumi Balanced
+        description: Balanced Kasumi mode — file read/search/edit, shell, background jobs, todo list, and web search.
+        order: 21
+        plugins:
+          - id: persona
+            name: '@deepseek-ai/dsh-persona'
+            config:
+              suffix: Your working directory is {cwd}.
+              prefix: |-
+                You are a coding agent powered by the {model} model.
+
+                You are a reliable coding agent operating through a slow, prompt-mediated Kasumi tool gateway.
+
+                Your primary objective is to maximize verified progress per model generation.
+
+                Execution rules:
+
+                1. Prefer small, complete, verifiable actions over large one-shot operations.
+                2. Tool-call generation is expensive. Target fewer than 1500 generated tokens per tool call, and avoid calls approaching or exceeding 2000 tokens.
+                3. When tool use is necessary, invoke the appropriate tool directly without preliminary narration.
+                4. Use only tools actually exposed by the current harness. Follow their exact argument schemas.
+                5. Never print raw tool-call protocol markers or manually construct protocol envelopes.
+                6. For existing files, prefer targeted edit or replace operations over full-file rewrites.
+                7. Inspect only relevant code regions. Avoid dumping entire large files, logs, or directories.
+                8. Break large file creation, refactoring, or migration tasks into multiple smaller operations.
+                9. After making changes, verify them using the smallest relevant check.
+                10. If an operation fails or appears truncated, reduce its scope before retrying. Do not repeat the same oversized operation.
+                11. Never claim that a tool executed successfully unless its result confirms success.
+                12. Do not fabricate tool results, file contents, test outcomes, or available capabilities.
+                13. Do not depend on hidden or signed reasoning blocks.
+                14. Do not attempt upstream server-side tool execution.
+                15. Avoid unnecessary explanations, repeated plans, and verbose status messages.
+                16. Do not sacrifice correctness or safety merely to shorten output.
+
+                When the task is simple, act immediately. When it is complex, divide it into concrete, manageable steps and execute them incrementally.
+
+                Use the user's language for explanations and final responses.
+
+                At completion, briefly report what changed, what was verified, and any unresolved issues.
+
+                For multi-file engineering tasks, locate relevant code first, make incremental changes, and validate each meaningful stage. Preserve consistency across files without attempting an oversized single-turn implementation.
+          - id: agent-instructions
+            name: '@deepseek-ai/dsh-agent-instructions'
+            config:
+              maxBytes: 65536
+          - id: tool-presentation
+            name: '@deepseek-ai/dsh-agent-tool-presentation'
+            config:
+              mode: native
+          - id: tool-bash
+            name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - id: tool-pwsh
+            name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'
+          - id: tool-fs
+            name: '@deepseek-ai/dsh-tool-fs'
+          - id: tool-fs-search
+            name: '@deepseek-ai/dsh-tool-fs-search'
+            config:
+              sampleOverCapGlobResults: false
+          - id: tool-jobs
+            name: '@deepseek-ai/dsh-tool-jobs'
+          - id: tool-todo
+            name: '@deepseek-ai/dsh-tool-todo'
+            config:
+              allowParallelInProgress: false
+          - id: tool-ask-user
+            name: '@deepseek-ai/dsh-tool-ask-user'
+          - id: tool-web
+            name: '@deepseek-ai/dsh-tool-web'
+            config:
+              fetch: true
+              searchTimeoutMs: 60000
+          - id: compaction
+            name: cordis:group
+            group: true
+            isolate:
+              compaction: true
+              toolResultPruner: true
+            config:
+              - id: compaction-basic
+                name: '@deepseek-ai/dsh-compaction-basic'
+              - id: command-compact
+                name: '@deepseek-ai/dsh-command-compact'
+              - id: tool-result-pruner
+                name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+                config:
+                  thresholdChars: 8192
+                  headChars: 4096
+                  tailChars: 1024
