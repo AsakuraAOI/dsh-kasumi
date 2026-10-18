@@ -2,7 +2,7 @@
   "name": "dsh-profile-desktop",
   "private": true,
   "dependencies": {
-    "@local/dsh-kasumi-presets": "link:C:/Users/USER/Desktop/dsh/hiagent-presets"
+    "@local/dsh-kasumi-presets": "link:C:/Users/Hyper/Desktop/dsh/hiagent-presets"
   },
   "dsh": {
     "profile": {

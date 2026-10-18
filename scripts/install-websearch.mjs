@@ -9,7 +9,7 @@ try{
  const before=JSON.parse(await readFile(resolve(profile.dir,'package.json'),'utf8'));
  await mkdir(root+'/reports',{recursive:true});
  await writeFile(root+`/reports/websearch-before-${profileName}.json`,JSON.stringify(before,null,2));
- const spec=`@local/dsh-kasumi-websearch@file:${root.replaceAll('\\','/')}/releases/local-dsh-kasumi-websearch-${bundleVersion}.tgz`;
+ const spec=`@local/dsh-kasumi-websearch@file:${root.replaceAll('\\','/')}/releases/local-dsh-hiagent-websearch-${bundleVersion}.tgz`;
  const result=await ctx.pluginManager.installBundle(spec);
  if(result.application==='failed'||result.packageResult?.exitCode!==0||result.pendingBuilds?.length)throw Error('网页搜索 Bundle 安装失败');
  const after=JSON.parse(await readFile(resolve(profile.dir,'package.json'),'utf8'));

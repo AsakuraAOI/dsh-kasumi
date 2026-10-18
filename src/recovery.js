@@ -6,8 +6,11 @@ export const Config=z.object({enabled:z.boolean().default(true),provider:z.strin
 // only refuses replay after visible partial output and on user cancellation.
 export function apply(ctx,config={}) {
  if(config.enabled===false)return;
+ return installRecoveryGuard(ctx,provider=>provider===(config.provider??'hiagent'));
+}
+export function installRecoveryGuard(ctx,enabledFor){
  ctx.on('agent/request-error',async({agent,provider,turn,step,signal},next)=>{
-  if(provider!==(config.provider??'hiagent'))return next();
+  if(!enabledFor(provider,agent))return next();
   if(signal.aborted)return undefined;
   for(let i=agent.session.seq-1;i>=0;i--) {
    const event=agent.session.eventAt(i);

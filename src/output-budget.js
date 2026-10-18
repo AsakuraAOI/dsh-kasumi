@@ -15,7 +15,7 @@ export function apply(ctx, config = {}) {
 export async function budgetResult(ctx,config,exec,result,next){
   const budgets = { ...DEFAULT_BUDGETS, ...config.budgets };
     const decision = await next();
-    if(exec.name==='skill')return decision;
+    if(exec.name==='skill'||exec.name.startsWith('kasumi_history_'))return decision;
     const kind = category(exec.name, exec.arguments)??(config.genericOutputs?'other':undefined);
     // read is already byte-bounded and paginated by its native plugin.
     if (!kind || (exec.name === 'read'&&!config.includeRead) || decision.kind !== 'accept' || Object.hasOwn(decision, 'value')) return decision;
@@ -27,10 +27,12 @@ export async function budgetResult(ctx,config,exec,result,next){
     const owner = exec.agent?.session.id;
     if (!owner) return decision;
     try {
+      let historyRef;
+      try{historyRef=await ctx.get?.('kasumiHistory')?.archive({agent:exec.agent,callId:exec.callId,tool:exec.name,text});}catch{ctx.logger.warn('Kasumi history archive unavailable; keeping native spill retrieval.');}
       const ref = await ctx.spillStore.saveText({ owner: { sessionId: owner }, source: { kind: 'tool', toolName: exec.name, callId: exec.callId, label: 'hiagent-budget' }, suggestedName: `${exec.name}.txt`, content: text });
       const hasRead = ctx.tools?.schemas(exec.agent).some(tool => tool.name === 'read');
       const hint = hasRead ? ref.retrievalHint : config.includeRead?'Use the current preset\'s file-view or shell tool to read this file in bounded ranges; for PTC use its SDK.':'Use str_replace_editor view with view_range, or the shell with a bounded line range, to read this file.';
-      const notice = `[hiagent-output-budget: reduced preview; original ${bytes(text)} UTF-8 bytes; full formatted output: ${ref.locator}. ${hint}]`;
+      const notice = `[hiagent-output-budget: reduced preview; original ${bytes(text)} UTF-8 bytes; full formatted output: ${ref.locator}. ${hint}${historyRef?` Durable history ref: ${historyRef}; use kasumi_history_read.`:''}]`;
       const retained = preview(text, cap, notice);
       return retained === undefined ? decision : { ...decision, content: [{ type: 'text', text: retained }] };
     } catch {

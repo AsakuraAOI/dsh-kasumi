@@ -14,7 +14,7 @@ try{
  else assert.match(result.video.body.content,/"content_verified": false/);
  const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
  result.nativeWebToolHash=sha(await readFile(new URL(import.meta.resolve('@deepseek-ai/dsh-tool-web'))));
- result.webSystemPromptHash=sha(await readFile(new URL('../../dsh-kasumi-websearch/src/index.js',import.meta.url)));
+ result.webSystemPromptHash=sha(await readFile(new URL('../../dsh-hiagent-websearch/src/index.js',import.meta.url)));
  assert.equal(result.nativeWebToolHash,'a8313d4e02c751f79d0f91dceb8dfcaa29e7c7a0299ab0d7f8db65471217b0c8');
  assert.equal(result.webSystemPromptHash,'6bd8555772d77a09d110ec0a9d43a10ba972853695aae18a5864ab0b1bfeba7f');
  result.success=true;console.log(JSON.stringify({success:true,sources:result.search.sources.length,ordinaryAnswerAbsent:true,videoStatus:result.video.statusCode,nativeToolAndPromptUnchanged:true}));

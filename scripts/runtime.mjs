@@ -25,14 +25,14 @@ export async function startProfile(name = 'hiagent-dev', overrides = [], init = 
   const pnpmPath = process.env.DSH_HIAGENT_PNPM;
   const packageManager = pnpmPath ? { command:process.execPath,args:[pnpmPath] } : undefined;
   const profileContext = { name,dir:profile.dir,patchPath:profile.patchPath,installAnchor:INSTALL_ANCHOR,home:resolve(profile.dir,'../..'),cwd:process.cwd(),startedBundles:profile.layers.map(x=>x.packageName),overlays:[],telemetryDisabledEnv:'1', ...(packageManager ? {packageManager} : {}) };
-  const base=readProfilePatches('dsh-kasumi',profileContext,profile);
+  const base=readProfilePatches('dsh-hiagent',profileContext,profile);
   const registryExists=composeEntries(base).some(row=>row.id==='agent-preset-registry');
   const normalized=registryExists?overrides.flatMap(row=>row.insert?.some(x=>x.id==='agent-preset-registry')?[...row.insert.filter(x=>x.id==='agent-preset-registry'),...(row.insert.some(x=>x.id!=='agent-preset-registry')?[{insert:row.insert.filter(x=>x.id!=='agent-preset-registry')}]:[])]:[row]):overrides;
   // Configuration edits re-read launch overlays. Include the test startup gates
   // there too, so a live setting change never reactivates CLI runners.
   profileContext.overlays=[{id:'headless-startup',disabled:true},{id:'headless-runner',disabled:true},{id:'hmr',disabled:true},{id:'session-title-llm',disabled:true},...normalized];
-  const patches = readProfilePatches('dsh-kasumi',profileContext,profile);
-  const ctx = await boot('dsh-kasumi',resolve(profile.dir,'cordis.yml'),patches,async ctx=>{
+  const patches = readProfilePatches('dsh-hiagent',profileContext,profile);
+  const ctx = await boot('dsh-hiagent',resolve(profile.dir,'cordis.yml'),patches,async ctx=>{
     ctx.provide('profileContext',profileContext);
     ctx.provide(DSH_LAUNCH_ENVIRONMENT_KEY,createLaunchEnvironmentSnapshot([{ source: 'process', values: process.env }]));
     await ctx.plugin(PluginPackages,{resolution});

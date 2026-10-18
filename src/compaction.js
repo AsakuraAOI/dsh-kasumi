@@ -1,6 +1,9 @@
 import BasicCompactionEngine from '@deepseek-ai/dsh-compaction-basic';
 import z from '@deepseek-ai/schemastery';
 import { createHash } from 'node:crypto';
+import {createUserMessage} from '@deepseek-ai/dsh-llm';
+import {toolPairingBalancedBefore,toolPairingBalancedAfter} from '@deepseek-ai/dsh-compaction';
+import {selectIncrement} from './incremental.js';
 
 // summarize customizes the official summary hook; the public pressure entry
 // coordinates our local/global owners. The base class owns pairing, durable
@@ -24,6 +27,23 @@ export default class KasumiCompaction extends BasicCompactionEngine {
   async compactIfNeeded(agent,trigger,signal){
     const global=this.policyContext.get?.('hiagentGlobal');
     if(trigger==='pressure'&&this.config.auto!==false&&global?.handlesCompaction(agent))return null;
+    if(trigger==='pressure'&&global?.handles('incrementalCompression',agent)){
+      const header=agent.session.requestHeader(),route=header?.config;
+      if(route){
+        const info=await this.policyContext.llm.resolveModelInfo(route.provider,route.model,signal),window=info.context?.contextWindow;
+        const override=this.config.modelPolicies.find(x=>x.provider===route.provider&&x.model===route.model)??{},policy={...this.config,...override};
+        const reserved=route.maxTokens??info.defaultMaxTokens??0,threshold=Math.floor(Math.min(window*policy.thresholdRatio,window-reserved-policy.headroomTokens));
+        const measurement=this.policyContext.tokenMeter.measure(agent.session);
+        if(Number.isFinite(threshold)&&threshold>0&&measurement.totalTokens>=threshold){
+          const retain=override.retainTokens??(override.retainRatio!==undefined?Math.floor((window-reserved)*override.retainRatio):this.config.retainTokens??Math.floor((window-reserved)*this.config.retainRatio));
+          const range=selectIncrement(agent.session,measurement,{retainTokens:retain,minTokens:global.current().minIncrementTokens??8192,summaryReserve:policy.maxTokens,thresholdTokens:threshold});
+          if(range&&toolPairingBalancedBefore(agent.session,range.start)&&toolPairingBalancedAfter(agent.session,range.end)){
+            const result=await super.compactRegion(range.start,range.end,agent,signal);
+            if(this.policyContext.tokenMeter.measure(agent.session).totalTokens<threshold)return result;
+          }
+        }
+      }
+    }
     return super.compactIfNeeded(agent,trigger,signal);
   }
   async summarize(input, agent, signal) {
@@ -37,7 +57,10 @@ export default class KasumiCompaction extends BasicCompactionEngine {
     }
     try {
       signal?.throwIfAborted();
-      const summary = await super.summarize(this.plainText ? { ...input, tools: [] } : input, agent, signal);
+      const global=this.policyContext.get?.('hiagentGlobal');
+      const guidance=global?.handles('taskStateGuidance',agent)?createUserMessage({source:{kind:'user'},content:[{type:'text',text:'Kasumi checkpoint requirements: preserve the CURRENT user goal and later corrections, active constraints, exact paths/identifiers/numbers/error strings, verified outcomes and remaining work. Distinguish completed work from proposals and superseded decisions. Do not invent missing details. Historical evidence remains available through kasumi_history_search / kasumi_history_read; preserve useful references instead of repeatedly rephrasing older summaries.'}]}):undefined;
+      const adapted={...input,...(this.plainText?{tools:[]}:{}),...(guidance?{messages:[...input.messages,guidance]}:{})};
+      const summary = await super.summarize(adapted, agent, signal);
       this.failures.delete(agent.session);
       return summary;
     } catch (error) {

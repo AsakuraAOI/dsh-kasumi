@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {applyWebSearchTool,formatSearchOutput} from '@deepseek-ai/dsh-tool-web';
 import {WebRuntime} from '@deepseek-ai/dsh-web';
-import {GatewaySearchProvider} from '../../dsh-kasumi-websearch/src/provider.js';
+import {GatewaySearchProvider} from '../../dsh-hiagent-websearch/src/provider.js';
 const version=process.argv[2]??'0.3.7';
 
 const primary=Array.from({length:5},(_,i)=>({url:`https://example.org/${i}`,title:`Ordinary article ${i}`}));

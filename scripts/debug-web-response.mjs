@@ -1,5 +1,5 @@
 import{startProfile,root,creatorDevComposition}from'./runtime.mjs';
-import{GatewaySearchProvider}from'../../dsh-kasumi-websearch/src/provider.js';
+import{GatewaySearchProvider}from'../../dsh-hiagent-websearch/src/provider.js';
 import{writeFile}from'node:fs/promises';
 const{ctx}=await startProfile('hiagent-dev',creatorDevComposition());const record={};
 try{

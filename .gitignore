@@ -16,3 +16,8 @@
 
 .dsh/
 .credentials*
+node_modules/
+.runtime/
+.private/
+benchmark-runs/
+**/.credentials*

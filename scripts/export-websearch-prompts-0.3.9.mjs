@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {applyWebSearchTool,applyWebFetchTool,formatSearchOutput,formatFetchOutput,WEB_SEARCH_MAX_RESULTS,WEB_SEARCH_MAX_QUERIES,DEFAULT_FETCH_MAX_OUTPUT_CHARS,DEFAULT_WEB_TOOL_TIMEOUT_MS} from '@deepseek-ai/dsh-tool-web';
-const root=path.resolve(import.meta.dirname,'..'),adapter=path.resolve(root,'../dsh-kasumi-websearch'),gateway='C:/Users/Hyper/Desktop/github/hiagent-coding-provider';
+const root=path.resolve(import.meta.dirname,'..'),adapter=path.resolve(root,'../dsh-hiagent-websearch'),gateway='C:/Users/Hyper/Desktop/github/hiagent-coding-provider';
 const read=file=>fs.readFileSync(file,'utf8');
 const adapterSource=read(adapter+'/src/index.js');
 const guidance=adapterSource.match(/\?'([^']+)':''/u)?.[1];assert.ok(guidance);
@@ -37,7 +37,7 @@ const lines=['# Web Search 当前提示词全文（0.3.9）','',
  '0.3.9 已直接删除上一版两句额外约束。下面第 1 项就是修正后的完整自定义系统提示；未添加替代的禁止性话术。',''];
 const block=(title,text,language='text')=>lines.push('## '+title,'','```'+language,text,'```','');
 block('1. 自定义系统提示 hiagent:web-evidence',guidance);
-lines.push('来源：`dsh-kasumi-websearch/src/index.js`。仅在当前作用域存在 web_search 或 web_fetch 时插入，主要模型会看到。','');
+lines.push('来源：`dsh-hiagent-websearch/src/index.js`。仅在当前作用域存在 web_search 或 web_fetch 时插入，主要模型会看到。','');
 for(const section of sections)block('2. DSH 原生系统段 '+section.name,section.text);
 for(const section of searchOnly)block('2. DSH 原生搜索段（没有 web_fetch 时的分支）',section.text);
 for(const tool of tools){block('3. 原生工具 '+tool.name+'：描述',tool.description);block('3. 原生工具 '+tool.name+'：参数及参数说明',JSON.stringify(tool.parameters,null,2),'json');block('3. 原生工具 '+tool.name+'：输出 schema',JSON.stringify(tool.outputSchema,null,2),'json');}

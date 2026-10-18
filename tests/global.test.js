@@ -15,13 +15,13 @@ test('global policies adapt an untouched third-party role; other providers and s
  try{
   await ctx.agentPresets.register({id:'arbitrary-role',name:'Third-party test',plugins:rolePlugins});
   a=await create(ctx,'hiagent');b=await create(ctx,'another-provider');
-  assert.deepEqual(ctx.tools.schemas(a.agent),ctx.tools.schemas(b.agent));
+  assert.deepEqual(ctx.tools.schemas(a.agent).filter(x=>!x.name.startsWith('kasumi_history_')),ctx.tools.schemas(b.agent));
   const file=resolve(area,'long.txt');await writeFile(file,'First important line\n'+Array.from({length:200},(_,i)=>`row ${i}: ${'large data '.repeat(10)}`).join('\n')+'\nLast important line');
   const guarded=await call(ctx,a.agent,'read',{file_path:file,limit:2000});assert.equal(guarded.isError,false);const text=guarded.content.map(x=>x.text??'').join('');assert.match(text,/reduced preview/);assert.ok(Buffer.byteLength(text)<13500);
   const spill=text.match(/full formatted output: (.*?). Use /)[1];assert.match(await readFile(spill,'utf8'),/Last important line/);
   const untouched=await call(ctx,b.agent,'read',{file_path:file,limit:2000});assert.equal(untouched.isError,false);assert.doesNotMatch(untouched.content.map(x=>x.text??'').join(''),/reduced preview/);
   for(let i=0;i<7;i++)assert.equal((await call(ctx,a.agent,'read',{file_path:file,offset:1,limit:1})).isError,false);
-  const denied=await call(ctx,a.agent,'read',{file_path:file,offset:1,limit:1});assert.equal(denied.isError,true);assert.match(denied.content[0].text,/Kasumi global/);
+  const denied=await call(ctx,a.agent,'read',{file_path:file,offset:1,limit:1});assert.equal(denied.isError,true);assert.match(denied.content[0].text,/Kasumi/);
   for(let i=0;i<10;i++)assert.equal((await call(ctx,b.agent,'read',{file_path:file,offset:1,limit:1})).isError,false);
   const value={complete:'payload '.repeat(5000),verified:true};
   ctx.tools.register(defineTool({name:'thirdparty_report',parameters:{},description:'Generate a third-party structured report.',output:{schema:{type:'json'},render:()=>[{type:'text',text:value.complete}]},execute:async()=>value}));

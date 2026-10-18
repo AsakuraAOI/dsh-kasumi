@@ -1,7 +1,7 @@
 import fs from'node:fs';
 import assert from'node:assert/strict';
 import{applyWebSearchTool,formatSearchOutput,searchMetaFromValue}from'@deepseek-ai/dsh-tool-web';
-import{GatewaySearchProvider as After}from'../../dsh-kasumi-websearch/src/provider.js';
+import{GatewaySearchProvider as After}from'../../dsh-hiagent-websearch/src/provider.js';
 import{GatewaySearchProvider as Before}from'file:///C:/Users/Hyper/Desktop/github/hiagent-coding-provider/.scratch/websearch-20261015/provider-before.mjs';
 const response={sources:[{url:'https://example.org/1234567890123456789',title:'Aria settings',snippet:'Settings summary',engines:['bing']}],truncated:false};
 const options={baseURL:'https://mock.example',resolveKey:async()=>'test',fetcher:async()=>Response.json(response)};

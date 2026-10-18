@@ -1,6 +1,6 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {formatSearchOutput} from '@deepseek-ai/dsh-tool-web';
-import {GatewaySearchProvider} from '../../dsh-kasumi-websearch/src/provider.js';
+import {GatewaySearchProvider} from '../../dsh-hiagent-websearch/src/provider.js';
 import {root} from './runtime.mjs';
 const area='C:/Users/Hyper/Desktop/github/hiagent-coding-provider/.scratch/searxng';
 const before=JSON.parse(await readFile(area+'/evidence-before.json','utf8'));

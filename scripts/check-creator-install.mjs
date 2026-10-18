@@ -11,7 +11,7 @@ import {root,runtimeAnchor} from './runtime.mjs';
 import {schema} from './build-presets.mjs';
 const hash=text=>createHash('sha256').update(text).digest('hex');
 const patch=await readFile(root+'/cordis.patch.yml','utf8');
-const previous=execFileSync('tar',['-xOf',root+'/releases/local-dsh-kasumi-0.3.1.tgz','package/cordis.patch.yml'],{encoding:'utf8'});
+const previous=execFileSync('tar',['-xOf',root+'/releases/local-dsh-hiagent-0.3.1.tgz','package/cordis.patch.yml'],{encoding:'utf8'});
 const now=yaml.load(patch,{schema})[0].insert,old=yaml.load(previous,{schema})[0].insert;
 for(const row of old){const current=structuredClone(now.find(x=>x.id===row.id));if(row.config?.id?.endsWith('-optimized'))current.config.name=row.config.name;assert.deepEqual(current,row,row.id);}
 const result={success:true,unchangedPreviousRows:old.map(x=>x.id),profiles:[]};
