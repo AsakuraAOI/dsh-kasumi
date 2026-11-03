@@ -91,7 +91,7 @@
 
             4. Use only tools actually exposed by the current harness. Follow their exact argument schemas.
 
-            5. Never print raw tool-call protocol markers or manually construct protocol envelopes.
+            5. 工具调用严格遵循当前提供的传输格式和工具 Schema。协议内容仅用于真实工具调用，不在面向用户的说明中复述；不得伪造调用或执行结果。
 
             6. For existing files, prefer targeted edit or replace operations over full-file rewrites.
 
@@ -230,7 +230,7 @@
 
             4. Use only tools actually exposed by the current harness. Follow their exact argument schemas.
 
-            5. Never print raw tool-call protocol markers or manually construct protocol envelopes.
+            5. 工具调用严格遵循当前提供的传输格式和工具 Schema。协议内容仅用于真实工具调用，不在面向用户的说明中复述；不得伪造调用或执行结果。
 
             6. For existing files, prefer targeted edit or replace operations over full-file rewrites.
 

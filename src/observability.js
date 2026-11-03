@@ -1,3 +1,4 @@
+import { registerPluginSettings } from "../plugin-settings.js";
 import z from '@deepseek-ai/schemastery';
 import { appendFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -19,6 +20,7 @@ export function measure(options) {
   return { ...totals, envelopeBytes: totals.systemBytes + totals.historyBytes + totals.toolResultBytes + schemaBytes, compiledQueryBytes: null };
 }
 export function apply(ctx, config = {}) {
+  registerPluginSettings(ctx);
   if (config.enabled === false) return;
   const file = resolve(config.path ?? 'hiagent-metrics.jsonl');
   let writes = mkdir(dirname(file), { recursive: true });

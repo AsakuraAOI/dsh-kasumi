@@ -2,7 +2,7 @@
 
 0.6.0 起优先使用 **Kasumi 全局适配**（全局适配组件）总开关，默认适配范围以代码配置中的模型通道列表为准。它的 `.volatile()` 原生配置支持实时调整；可在插件列表禁用整个全局组件。`outputBudget`、`readBatchGuard`、`pressureCompaction`、`recoveryGuard` 可分别关闭。全局开启时，已有 Kasumi 局部输出/读取保护和自动压力压缩让出处理；关闭后恢复所选模式自身配置。详见 `global.md`。
 
-本 Bundle 提供四种 Kasumi Preset（学习模式需 StudyMate 2.0.1）。宿主观测默认关闭，宿主恢复守卫默认 disabled，不为其他 Preset 增加行为。基础 Provider 原样连接 Anthropic Messages；不要求额外 Adapter。
+本 Bundle 提供五种 Kasumi Preset（学习模式需 StudyMate 2.0.1）。宿主观测默认关闭，宿主恢复守卫默认 disabled，不为其他 Preset 增加行为。基础 Provider 原样连接 Anthropic Messages；不要求额外 Adapter。
 
 ## 独立开关
 
@@ -15,6 +15,12 @@
 DSH Patch 覆盖整份 `config`，嵌套 Preset 也一样。不要只写一个子字段就覆盖完整的 Preset 声明；修改共享源码重新生成，或在正式配置编辑器编辑该行。
 
 学习模式的读取策略组件 使用 scoped `tools.guard` 限制每步的文本读取调用（默认 8 次，`maxReadCallsPerStep` 可调 1–64），`enabled:false` 独立关闭。超出调用明确拒绝并提示下一步分批继续；不裁剪已有历史、不影响技能和其他模式。详见 `learning.md`。
+
+文学模式的稿件保护组件同样使用 scoped `tools.guard`：每步最多 8 次 `read`（`maxReadCallsPerStep` 可调 1–64），并在覆盖已存在且非空的文件前要求本会话先读过它（`protectExistingWrites:false` 关闭）。`enabled:false` 独立关闭。全局适配开启时读取计数让给全局层，覆盖保护仍生效。详见 `literary.md`。
+
+## 重试与续写
+
+重试策略与有限续写已内置在「Kasumi 重试与续写」组件，直接使用 DSH 原生配置。它不依赖独立重试设置插件，也不依赖本地插件设置页；字段及迁移说明见 [retry.md](retry.md)。
 
 ## 即时预算
 

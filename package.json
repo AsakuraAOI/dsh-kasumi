@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-kasumi",
-  "version": "0.7.0",
+  "version": "0.8.4",
   "private": true,
   "type": "module",
   "description": "可开关的 Kasumi 全局适配与兼容预设：自动纯文本压缩、输出预算、读取批次和恢复守卫。",
@@ -9,11 +9,17 @@
     "./compaction": "./src/compaction.js",
     "./output-budget": "./src/output-budget.js",
     "./recovery": "./src/recovery.js",
+    "./retry": "./src/retry.js",
+    "./retry/locale/*.json": "./locale/retry/*.json",
+    "./retry/package.json": "./package.json",
     "./query-budget": "./src/query-budget.js",
     "./dev-preset": "./src/dev-preset.js",
     "./learning-policy": "./src/learning-policy.js",
     "./learning-policy/locale/*.json": "./locale/learning-policy/*.json",
     "./learning-policy/package.json": "./package.json",
+    "./literary-policy": "./src/literary-policy.js",
+    "./literary-policy/locale/*.json": "./locale/literary-policy/*.json",
+    "./literary-policy/package.json": "./package.json",
     "./global": "./src/global.js",
     "./global/locale/*.json": "./locale/global/*.json",
     "./global/package.json": "./package.json",
@@ -28,11 +34,25 @@
     "./query-budget/locale/*.json": "./locale/query-budget/*.json",
     "./query-budget/package.json": "./package.json",
     "./dev-preset/locale/*.json": "./locale/dev-preset/*.json",
-    "./dev-preset/package.json": "./package.json"
+    "./dev-preset/package.json": "./package.json",
+    "./client": "./client.js",
+    "./vision": "./src/vision.js",
+    "./vision/locale/*.json": "./locale/vision/*.json",
+    "./vision/package.json": "./package.json",
+    "./tool-context": "./src/tool-context.js",
+    "./tool-context/locale/*.json": "./locale/tool-context/*.json",
+    "./tool-context/package.json": "./package.json"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
     }
   },
   "files": [
@@ -48,20 +68,24 @@
     "tests",
     "benchmarks",
     "profiles",
-    "locale"
+    "locale",
+    "client.js",
+    "plugin-settings.js",
+    "settings-ui.js",
+    "scripts/build-settings.mjs"
   ],
   "devDependencies": {
-    "@deepseek-ai/dsh": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-llm-pi-ai": "0.2.1-rc.2",
+    "@deepseek-ai/dsh": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-llm-pi-ai": "0.2.1-rc.3",
     "js-yaml": "4.2.0"
   },
   "peerDependencies": {
     "@deepseek-ai/schemastery": "3.18.5",
-    "@deepseek-ai/dsh-compaction-basic": "0.2.1-rc.1 || 0.2.1-rc.2",
-    "@deepseek-ai/dsh-llm": "0.2.1-rc.1 || 0.2.1-rc.2",
-    "@deepseek-ai/dsh-tools": "0.2.1-rc.1 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-compaction-basic": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5",
     "@yunmiao/studymate": "^2.0.1",
-    "@deepseek-ai/dsh-compaction": "0.2.1-rc.1 || 0.2.1-rc.2"
+    "@deepseek-ai/dsh-compaction": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-compaction-basic": {
@@ -82,9 +106,10 @@
   },
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "build": "node scripts/build-presets.mjs",
+    "build": "node scripts/build-presets.mjs && npm run build:settings",
     "benchmark": "node scripts/benchmark.mjs",
-    "report": "node scripts/report.mjs"
+    "report": "node scripts/report.mjs",
+    "build:settings": "node scripts/build-settings.mjs"
   },
   "repository": {
     "type": "git",
@@ -98,5 +123,25 @@
     "dsh",
     "dsh-plugin",
     "deepseek-harness"
-  ]
+  ],
+  "pluginPage": {
+    "name": "@local/dsh-kasumi",
+    "title": "Kasumi 适配",
+    "route": "/api/plugins/dsh-hiagent/settings",
+    "titles": {
+      "kasumi-retry": "Kasumi 重试与续写",
+      "hiagent-global": "Kasumi 全局适配",
+      "hiagent-global-compaction": "全局压缩",
+      "hiagent-observability": "性能观测",
+      "hiagent-recovery": "恢复保护",
+      "hiagent-query-budget": "请求预算",
+      "bilibili-account": "B站账号与视频阅读",
+      "hiagent-web-search": "网页搜索与读取",
+      "seeit-video": "Seeit 视频理解",
+      "session-md-export": "导出选项",
+      "kasumiflow": "学习事务与课程资料",
+      "kasumi-vision": "独立视觉识别",
+      "kasumi-tool-context": "本地工具按需上下文"
+    }
+  }
 }

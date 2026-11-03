@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {loadOverlayPatches} from '@deepseek-ai/dsh-app-boot';
+import {root} from '../scripts/runtime.mjs';
+test('literary preset keeps writing tools, drops code execution and guards manuscripts',()=>{
+ const row=loadOverlayPatches('literary-test',root+'/cordis.patch.yml')[0].insert.find(x=>x.config?.id==='hiagent-literary');
+ assert.ok(row);
+ const plugins=row.config.plugins,ids=new Set(plugins.map(x=>x.id));
+ for(const id of ['persona','agent-instructions','tool-fs','tool-fs-search','tool-todo','tool-ask-user','tool-web','compaction','hiagent-output-budget','hiagent-literary-policy'])assert.ok(ids.has(id),id);
+ for(const id of ['tool-bash','tool-pwsh','tool-jobs','tool-schedule','tool-goal','plan-mode'])assert.ok(!ids.has(id),id);
+ assert.equal(plugins.find(x=>x.id==='tool-presentation').config.mode,'native');
+ const prefix=plugins.find(x=>x.id==='persona').config.prefix;
+ assert.match(prefix,/literary writing assistant/);
+ assert.match(prefix,/Ending a turn/);
+ assert.match(prefix,/ask_user_question, as the last call/);
+ assert.match(prefix,/自定义回复/);
+ assert.match(prefix,/it stays last/);
+ assert.equal(plugins.find(x=>x.id==='hiagent-literary-policy').config.maxReadCallsPerStep,8);
+ assert.equal(plugins.find(x=>x.id==='hiagent-literary-policy').config.protectExistingWrites,true);
+ assert.equal(plugins.find(x=>x.id==='compaction').config[0].config.plainText,true);
+});

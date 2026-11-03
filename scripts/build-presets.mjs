@@ -2,10 +2,13 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import yaml from 'js-yaml';
-import { persona, compaction, search, features } from '../config/shared.mjs';
+import { persona, literaryPersona, compaction, search, features, toolTransportRule } from '../config/shared.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const schema = yaml.JSON_SCHEMA.extend(new yaml.Type('tag:yaml.org,2002:js', { kind: 'scalar', construct: value => ({ __jsExpr: value }), predicate: value => value && typeof value.__jsExpr === 'string', represent: value => value.__jsExpr }));
 const baseline = yaml.load(fs.readFileSync(resolve(root,'baseline/cordis.patch.yml'),'utf8'),{ schema });
+// The frozen rc.1 baseline used single braces; current Harness deliberately
+// interpolates only strict {{variable}} references.
+const interpolateLegacy = text => typeof text==='string'?text.replace(/(?<!\{)\{(model|cwd)\}(?!\})/g,'{{$1}}'):text;
 const definitions = baseline[0].insert.map(row => {
   const next = structuredClone(row), lite = row.config.id.endsWith('lite');
   next.id += '-optimized'; next.config.id += '-optimized';
@@ -13,6 +16,9 @@ const definitions = baseline[0].insert.map(row => {
   next.config.description = lite ? '持久化终端与精确编辑，增加项目指令、轻量压缩和输出预算；额外搜索默认关闭。' : '文件检索与编辑、终端、后台任务和网页工具，增加纯文本压缩及即时输出预算。';
   next.config.order += 10;
   const plugins = next.config.plugins;
+  const originalPersona=plugins.find(x=>x.id==='persona');
+  for(const key of ['prefix','suffix'])if(originalPersona?.config?.[key])originalPersona.config[key]=interpolateLegacy(originalPersona.config[key]);
+  if(typeof originalPersona?.config?.prefix==='string')originalPersona.config.prefix=originalPersona.config.prefix.replace('Never print raw tool-call protocol markers or manually construct protocol envelopes.',toolTransportRule);
   if(features.rewritePersona)plugins.find(x=>x.id==='persona').config.prefix = persona;
   if (lite) {
     if(features.projectInstructions) plugins.splice(1,0,{ id:'agent-instructions', name:'@deepseek-ai/dsh-agent-instructions', config:{ maxBytes:32768 } });
@@ -65,10 +71,26 @@ Object.assign(studyCompaction.config.find(x=>x.id==='compaction-basic'),{name:'@
 studyPlugins.push({id:'hiagent-output-budget',name:'@local/dsh-kasumi/output-budget',config:{enabled:features.outputBudget}});
 studyPlugins.push({id:'hiagent-learning-policy',name:'@local/dsh-kasumi/learning-policy',config:{enabled:true,maxReadCallsPerStep:8}});
 definitions.push({id:'preset-hiagent-learning',name:'@deepseek-ai/dsh-agent-preset',disabled:{__jsExpr:"(() => { try { return !ctx.get('pluginPackages')?.packageOf('@yunmiao/studymate', ctx.baseUrl); } catch { return true; } })()"},config:{id:'hiagent-learning',name:'Kasumi 学习模式',description:'StudyMate 学习总控、课程校验、任务与实验工具，使用 Kasumi 原生工具呈现、纯文本压缩和输出预算。',order:33,plugins:studyPlugins}});
+// Literary mode: drafting and revision only. It keeps the file, search, todo,
+// question and web tools, and deliberately omits every shell/code surface.
+const literaryPlugins=[
+ {id:'persona',name:'@deepseek-ai/dsh-persona',config:{prefix:literaryPersona,suffix:'Your working directory is {{cwd}}.'}},
+ {id:'agent-instructions',name:'@deepseek-ai/dsh-agent-instructions',config:{maxBytes:32768}},
+ {id:'tool-presentation',name:'@deepseek-ai/dsh-agent-tool-presentation',config:{mode:'native'}},
+ {id:'tool-fs',name:'@deepseek-ai/dsh-tool-fs',config:{readMaxBytes:12288,readLimit:200}},
+ {id:'tool-fs-search',name:'@deepseek-ai/dsh-tool-fs-search',config:features.nativeOutputCaps?search:{sampleOverCapGlobResults:false}},
+ {id:'tool-todo',name:'@deepseek-ai/dsh-tool-todo',config:{allowParallelInProgress:false}},
+ {id:'tool-ask-user',name:'@deepseek-ai/dsh-tool-ask-user'},
+ {id:'tool-web',name:'@deepseek-ai/dsh-tool-web',config:{fetch:true,searchTimeoutMs:60000}},
+ {id:'compaction',name:'cordis:group',group:true,isolate:{compaction:true,toolResultPruner:true},disabled:!features.compaction,config:[{id:'compaction-basic',name:'@local/dsh-kasumi/compaction',config:{...compaction,plainText:features.plainTextCompaction}},{id:'command-compact',name:'@deepseek-ai/dsh-command-compact'}]},
+ {id:'hiagent-output-budget',name:'@local/dsh-kasumi/output-budget',config:{enabled:features.outputBudget}},
+ {id:'hiagent-literary-policy',name:'@local/dsh-kasumi/literary-policy',config:{enabled:true,maxReadCallsPerStep:8,protectExistingWrites:true}},
+];
+definitions.push({id:'preset-hiagent-literary',name:'@deepseek-ai/dsh-agent-preset',config:{id:'hiagent-literary',name:'Kasumi 文学模式',description:'面向小说、散文、诗歌与剧本的创作工作流：先定设定与大纲，再逐章起草与修订；保留文件、检索、待办与网页工具，不提供命令执行。',order:34,plugins:literaryPlugins}});
 const globalGroup={id:'hiagent-global-group',name:'cordis:group',group:true,isolate:{compaction:true,toolResultPruner:true},config:[
  {id:'hiagent-global-compaction',name:'@local/dsh-kasumi/compaction',config:{...compaction,auto:false}},
  {id:'hiagent-global',name:'@local/dsh-kasumi/global',config:{enabled:true,providers:['hiagent'],outputBudget:true,genericOutputs:true,readBatchGuard:true,maxReadCallsPerStep:8,pressureCompaction:true,recoveryGuard:true,readBytes:12288,searchBytes:6144,shellBytes:8192,otherBytes:16384}},
 ]};
-const patch = [{ insert:[{ id:'hiagent-observability',name:'@local/dsh-kasumi',config:{enabled:false}}, {id:'hiagent-recovery',name:'@local/dsh-kasumi/recovery',disabled:true}, {id:'hiagent-query-budget',name:'@local/dsh-kasumi/query-budget',disabled:true},globalGroup,...definitions] }];
+const patch = [{ insert:[{ id:'hiagent-observability',name:'@local/dsh-kasumi',config:{enabled:false}}, {id:'kasumi-retry',name:'@local/dsh-kasumi/retry',config:{enabled:false,providers:['hiagent']}}, {id:'hiagent-recovery',name:'@local/dsh-kasumi/recovery',disabled:true}, {id:'hiagent-query-budget',name:'@local/dsh-kasumi/query-budget',disabled:true},globalGroup,{id:'kasumi-vision',name:'@local/dsh-kasumi/vision',config:{enabled:true,providers:[]}},{id:'kasumi-tool-context',name:'@local/dsh-kasumi/tool-context',config:{enabled:true,providers:[],onDemand:['bilibili','seeit','todo','kasumiflow','practice'],autoDetect:true}},...definitions] }];
 fs.writeFileSync(resolve(root,'cordis.patch.yml'),'# Generated by npm run build from immutable baseline and config/shared.mjs.\n'+yaml.dump(patch,{schema,lineWidth:110,noRefs:true}));
-console.log('Built Kasumi Lite, Balanced, Creator and StudyMate Learning; stable IDs retained.');
+console.log('Built Kasumi Lite, Balanced, Creator, StudyMate Learning and Literary; stable IDs retained.');

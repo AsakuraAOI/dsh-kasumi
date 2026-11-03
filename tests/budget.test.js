@@ -16,7 +16,7 @@ test('UTF-8 cap and diagnostic preservation with unicode in large output',()=>{
 });
 test('post-execute preserves structured value, block policies and additional context',async()=>{
   let handler,spilled;
-  const ctx={on:(_event,fn)=>{handler=fn;},spillStore:{saveText:async input=>{spilled=input;return {locator:'/tmp/full.txt',retrievalHint:'read this file'};}},logger:{warn:()=>{}}};
+  const ctx={systemPrompt:{variable:()=>{}},on:(_event,fn)=>{handler=fn;},spillStore:{saveText:async input=>{spilled=input;return {locator:'/tmp/full.txt',retrievalHint:'read this file'};}},logger:{warn:()=>{}}};
   apply(ctx,{budgets:{shell:1024}});
   const content=[{type:'text',text:'line\n'.repeat(1000)+'[exit code: 7]'}];
   const result={content,value:{exitCode:7,stdout:'original'},isError:false};
@@ -29,7 +29,7 @@ test('post-execute preserves structured value, block policies and additional con
 });
 test('spill failures and nontext result blocks preserve original content',async()=>{
   let handler;
-  apply({on:(_e,fn)=>handler=fn,spillStore:{saveText:async()=>{throw Error('disk');}},logger:{warn:()=>{}}},{budgets:{shell:1024}});
+  apply({systemPrompt:{variable:()=>{}},on:(_e,fn)=>handler=fn,spillStore:{saveText:async()=>{throw Error('disk');}},logger:{warn:()=>{}}},{budgets:{shell:1024}});
   const exec={name:'pwsh',arguments:{},agent:{session:{id:'s'}}};
   const accepted={kind:'accept'};
   assert.equal(await handler(exec,{content:[{type:'text',text:'x'.repeat(4000)}]},async()=>accepted),accepted);
