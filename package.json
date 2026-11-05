@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-kasumi",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "private": true,
   "type": "module",
   "description": "可开关的 Kasumi 全局适配与兼容预设：自动纯文本压缩、输出预算、读取批次和恢复守卫。",
@@ -80,12 +80,12 @@
     "js-yaml": "4.2.0"
   },
   "peerDependencies": {
-    "@deepseek-ai/schemastery": "3.18.5",
-    "@deepseek-ai/dsh-compaction-basic": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5",
-    "@deepseek-ai/dsh-llm": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5",
-    "@deepseek-ai/dsh-tools": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5",
+    "@deepseek-ai/schemastery": "3.18.5 || 3.19.0",
+    "@deepseek-ai/dsh-compaction-basic": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-rc.1",
     "@yunmiao/studymate": "^2.0.1",
-    "@deepseek-ai/dsh-compaction": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5"
+    "@deepseek-ai/dsh-compaction": "0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3 || 0.2.1-rc.4 || 0.2.1-rc.5 || 0.2.2-rc.1"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/dsh-compaction-basic": {
